@@ -18,6 +18,9 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize"
+            android:hardwareAccelerated="true"
+            android:configChanges="uiMode"
             android:theme="@style/Theme.ChatMeIfYouCan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
