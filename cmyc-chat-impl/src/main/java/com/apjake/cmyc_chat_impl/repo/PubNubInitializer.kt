@@ -2,6 +2,7 @@ package com.apjake.cmyc_chat_impl.repo
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.apjake.cmyc_chat_core.domain.CChannelState
 import com.apjake.cmyc_chat_core.domain.CMessage
 import com.apjake.cmyc_chat_core.domain.CUser
@@ -44,6 +45,7 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
     private var config: PNConfiguration? = null
     private var pubNub: PubNub? = null
     private var channel: Channel? = null
+    private lateinit var lifecycleObserver: PubNubLifecycleObserver
 
     private val _channelState = MutableStateFlow(CChannelState.Connecting)
     private val _messageStream = MutableStateFlow<CMessage?>(null)
@@ -111,6 +113,14 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
 
     }
 
+    fun onEnterForeground() {
+        Log.v(TAG, "onEnterForeground")
+    }
+
+    fun onEnterBackground() {
+        Log.v(TAG, "onEnterBackground")
+    }
+
     private fun updateMessageFlow(message: CMessage) {
         _messageHistory.update { list ->
             val index = list.indexOfFirst { it.id == message.id }
@@ -138,6 +148,8 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
             pubNub = PubNub.create(it)
             listenChannelState()
         }
+        lifecycleObserver = PubNubLifecycleObserver(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleObserver)
     }
 
     private fun listenChannelState() {

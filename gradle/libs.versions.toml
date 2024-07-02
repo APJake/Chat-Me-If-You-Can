@@ -38,6 +38,7 @@ pubnub-kotlin = { module = "com.pubnub:pubnub-kotlin", version.ref = "pubnubKotl
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "compose-nav" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

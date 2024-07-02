@@ -44,6 +44,8 @@ dependencies {
 
     implementation(libs.google.gson)
     implementation(libs.pubnub.kotlin)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.process)
 
     implementation(project(":cmyc-chat-core"))
 }
