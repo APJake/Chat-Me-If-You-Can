@@ -2,6 +2,8 @@ package com.apjake.cmyc_chat_impl.mapper
 
 import com.apjake.cmyc_chat_core.domain.CMessage
 import com.apjake.cmyc_chat_impl.pubnub.MessageDto
+import com.google.gson.Gson
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 
 /**
@@ -9,9 +11,14 @@ import com.google.gson.JsonObject
  * on 26/06/2024
  */
  
-fun JsonObject.toCMessage() = CMessage(
-    id = this["id"].asString,
-    message = this["message"].asString,
+fun JsonElement.toCMessage(): CMessage {
+    val dto = Gson().fromJson(this, MessageDto::class.java)
+    return dto.toMessage()
+}
+
+fun MessageDto.toMessage() = CMessage(
+    id = id,
+    message = message
 )
 
 fun CMessage.toJsonObject() = JsonObject().apply {

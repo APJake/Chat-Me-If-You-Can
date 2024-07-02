@@ -13,6 +13,8 @@ appcompat = "1.7.0"
 material = "1.12.0"
 pubnubKotlin = "9.2.0"
 compose-nav = "2.8.0-beta01"
+kotlinxSerializationJson = "1.4.0"
+gson = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,10 +36,13 @@ material = { group = "com.google.android.material", name = "material", version.r
 pubnub-kotlin = { module = "com.pubnub:pubnub-kotlin", version.ref = "pubnubKotlin" }
 
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "compose-nav" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+google-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-

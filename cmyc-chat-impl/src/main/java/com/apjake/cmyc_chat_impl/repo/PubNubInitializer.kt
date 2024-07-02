@@ -10,6 +10,7 @@ import com.apjake.cmyc_chat_core.repo.CMYCInitializer
 import com.apjake.cmyc_chat_core.repo.CMYCStatePublisher
 import com.apjake.cmyc_chat_core.repo.ChannelInitializer
 import com.apjake.cmyc_chat_impl.mapper.toCMessage
+import com.apjake.cmyc_chat_impl.mapper.toDto
 import com.apjake.cmyc_chat_impl.mapper.toJsonObject
 import com.google.gson.JsonObject
 import com.pubnub.api.PubNub
@@ -104,7 +105,7 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
                     Log.i(TAG, "userMetadata ${result.userMetadata?.asJsonObject}")
                     Log.i(TAG, "publisher ${result.publisher}")
                     _messageStream.tryEmit(
-                        result.message.asJsonObject.toCMessage()
+                        result.message.toCMessage()
                     )
                     _messageHistory.update {
                         it + result.message.asJsonObject.toCMessage()
@@ -130,7 +131,7 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
             result.onSuccess { historyResult ->
                 Log.d(TAG, "Received message history: ${historyResult.messages}")
                 _messageHistory.tryEmit(historyResult.messages.map {
-                    it.entry.asJsonObject.toCMessage()
+                    it.entry.toCMessage()
                 })
             }
         }
@@ -158,12 +159,12 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
     }
 
     override fun sendTextMessage(text: CMessage) {
-        val jsonObject = text.toJsonObject()
+        val messageDto = text.toDto(config?.userId?.value.orEmpty())
         val meta = JsonObject().apply {
             addProperty("id", config?.userId?.value)
         }
         channel?.publish(
-            message = jsonObject,
+            message = messageDto,
             meta = meta,
             shouldStore = true,
             usePost = true,
