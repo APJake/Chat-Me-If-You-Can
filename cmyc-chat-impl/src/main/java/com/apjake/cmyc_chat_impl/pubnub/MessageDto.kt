@@ -6,7 +6,9 @@ package com.apjake.cmyc_chat_impl.pubnub
  */
 
 data class MessageDto(
-    val id: String,
-    val sender: String,
-    val message: String,
+    val id: String?,
+    val sender: UserDto?,
+    val type: String?,
+    val message: String?,
+    val status: String?,
 )
