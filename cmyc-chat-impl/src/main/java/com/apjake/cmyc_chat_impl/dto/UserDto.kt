@@ -1,4 +1,4 @@
-package com.apjake.cmyc_chat_impl.pubnub
+package com.apjake.cmyc_chat_impl.dto
 
 /**
  * Created by AP-Jake

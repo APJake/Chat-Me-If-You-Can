@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.pubnub.kotlin)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
+    implementation(libs.timber)
 
     implementation(project(":cmyc-chat-core"))
 }

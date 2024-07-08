@@ -1,6 +1,6 @@
 package com.apjake.cmyc_chat_impl.util
 
-import com.apjake.cmyc_chat_impl.pubnub.MessageDto
+import com.apjake.cmyc_chat_impl.dto.MessageDto
 
 /**
  * Created by AP-Jake

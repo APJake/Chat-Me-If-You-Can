@@ -9,10 +9,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.apjake.cmyc_chat_core.repo.CMYCFeature
-import com.apjake.cmyc_chat_core.repo.CMYCInitializer
-import com.apjake.cmyc_chat_core.repo.CMYCStatePublisher
-import com.apjake.cmyc_chat_core.repo.ChannelInitializer
+import com.apjake.cmyc_chat_core.`interface`.ChannelInitializer
+import com.apjake.cmyc_chat_core.`interface`.ChatFeature
+import com.apjake.cmyc_chat_core.`interface`.ChatInitializer
+import com.apjake.cmyc_chat_core.`interface`.ChatStatePublisher
 
 /**
  * Created by AP-Jake
@@ -21,10 +21,10 @@ import com.apjake.cmyc_chat_core.repo.ChannelInitializer
 
 @Composable
 fun TestNavHost(
-    initializer: CMYCInitializer,
+    initializer: ChatInitializer,
     channelInitializer: ChannelInitializer,
-    statePublisher: CMYCStatePublisher,
-    feature: CMYCFeature,
+    statePublisher: ChatStatePublisher,
+    feature: ChatFeature,
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {

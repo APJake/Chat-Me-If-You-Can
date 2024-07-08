@@ -39,6 +39,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleRuntimeKtx" }
+timber = { module = "com.jakewharton.timber:timber", version = "5.0.1" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

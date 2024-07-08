@@ -12,16 +12,17 @@ import com.apjake.cmyc_chat_core.repo.CMYCStatePublisher
 import com.apjake.cmyc_chat_core.repo.ChannelInitializer
 import com.apjake.cmyc_chat_impl.mapper.toCMessage
 import com.apjake.cmyc_chat_impl.mapper.toMessage
-import com.apjake.cmyc_chat_impl.pubnub.MessageDto
-import com.apjake.cmyc_chat_impl.pubnub.UserDto
+import com.apjake.cmyc_chat_impl.dto.MessageDto
+import com.apjake.cmyc_chat_impl.dto.UserDto
 import com.apjake.cmyc_chat_impl.util.Helper
 import com.google.gson.JsonObject
 import com.pubnub.api.PubNub
 import com.pubnub.api.UserId
 import com.pubnub.api.enums.PNStatusCategory
 import com.pubnub.api.models.consumer.PNStatus
+import com.pubnub.api.models.consumer.message_actions.PNMessageAction
 import com.pubnub.api.models.consumer.pubsub.PNMessageResult
-import com.pubnub.api.models.consumer.pubsub.PNSignalResult
+import com.pubnub.api.models.consumer.pubsub.message_actions.PNMessageActionResult
 import com.pubnub.api.v2.PNConfiguration
 import com.pubnub.api.v2.callbacks.EventListener
 import com.pubnub.api.v2.callbacks.StatusListener
@@ -40,7 +41,7 @@ import kotlinx.coroutines.flow.update
  * on 26/06/2024
  */
 
-class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublisher, CMYCFeature {
+class PubNubInitializer2 : CMYCInitializer, ChannelInitializer, CMYCStatePublisher, CMYCFeature {
 
     private var config: PNConfiguration? = null
     private var pubNub: PubNub? = null
@@ -51,6 +52,13 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
     private val _messageStream = MutableStateFlow<CMessage?>(null)
     private val _messageHistory = MutableStateFlow<List<CMessage>>(emptyList())
     private val _errorState = MutableSharedFlow<Exception>()
+    private val isOnForeground = MutableStateFlow(true)
+    private val receiptStatus: String
+        get() = if (isOnForeground.value) {
+            "Read"
+        } else {
+            "Delivered"
+        }
 
     private val sender: UserDto
         get() = UserDto(
@@ -69,6 +77,22 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
         get() = _errorState.asSharedFlow()
 
     private val pubNubEventListener = object : EventListener {
+        override fun messageAction(pubnub: PubNub, result: PNMessageActionResult) {
+            Log.d(TAG, "Received signal $result")
+            if (result.messageAction.type == "receipt") {
+                _messageHistory.update { list ->
+                    list.map { message ->
+                        if (result.messageAction.messageTimetoken == message.timeToken) {
+                            message.copy(
+                                status = result.messageAction.value
+                            )
+                        } else {
+                            message
+                        }
+                    }
+                }
+            }
+        }
 
         override fun message(pubnub: PubNub, result: PNMessageResult) {
             if (result.channel == channel!!.name) {
@@ -76,15 +100,15 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
                 Log.i(TAG, "time token ${result.timetoken}")
                 Log.i(TAG, "userMetadata ${result.userMetadata?.asJsonObject}")
                 Log.i(TAG, "publisher ${result.publisher}")
-                val message = result.message.toCMessage()
+                val message = result.message.toCMessage().copy(
+                    timeToken = result.timetoken?: -1
+                )
                 _messageStream.tryEmit(message)
                 if (message.sender.id != sender.id) {
                     _messageHistory.update { list ->
-                        (list + message).map { message ->
-                            message.copy(
-                                status = "Read"
-                            )
-                        }
+                        list + message.copy(
+                            status = receiptStatus
+                        )
                     }
                     sendLastMessageAsSignal(message)
                 } else {
@@ -96,29 +120,19 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
                 }
             }
         }
-
-        override fun signal(pubnub: PubNub, result: PNSignalResult) {
-            Log.d(TAG, "Received signal ${result}")
-            if (result.publisher == sender.id) {
-                return
-            }
-            _messageHistory.update { list ->
-                list.map { message ->
-                    message.copy(
-                        status = result.message.asString
-                    )
-                }
-            }
-        }
-
     }
 
     fun onEnterForeground() {
-        Log.v(TAG, "onEnterForeground")
+        isOnForeground.update { true }
+        _messageHistory.value.forEach { message ->
+            if (message.sender.id != sender.id && message.status == "Delivered") {
+                sendLastMessageAsSignal(message)
+            }
+        }
     }
 
     fun onEnterBackground() {
-        Log.v(TAG, "onEnterBackground")
+        isOnForeground.update { false }
     }
 
     private fun updateMessageFlow(message: CMessage) {
@@ -182,16 +196,20 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
             // No need to send
             return
         }
-        pubNub?.signal(
+        pubNub?.addMessageAction(
             channel = channel!!.name,
-            message = "read",
+            messageAction = PNMessageAction(
+                type = "receipt",
+                value = receiptStatus,
+                messageTimetoken = message.timeToken
+            )
         )?.async { result ->
             result.onFailure { exception ->
-                Log.e(TAG, "exception: $exception")
+                Log.e(TAG, "Receipt exception: $exception")
                 _errorState.tryEmit(exception)
             }
             result.onSuccess {
-                Log.d(TAG, "Sent signal at: $it")
+                Log.d(TAG, "Sent receipt at: $it")
             }
         }
     }
@@ -277,6 +295,7 @@ class PubNubInitializer : CMYCInitializer, ChannelInitializer, CMYCStatePublishe
                 message = text,
                 status = "Sending",
                 type = "Text",
+                timeToken = -1,
             )
         )
         updateMessageFlow(message = message.toMessage())

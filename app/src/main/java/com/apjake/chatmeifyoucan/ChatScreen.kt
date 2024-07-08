@@ -32,12 +32,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.apjake.cmyc_chat_core.domain.CMessage
-import com.apjake.cmyc_chat_core.domain.CUser
-import com.apjake.cmyc_chat_core.repo.CMYCFeature
-import com.apjake.cmyc_chat_core.repo.CMYCInitializer
-import com.apjake.cmyc_chat_core.repo.CMYCStatePublisher
-import com.apjake.cmyc_chat_core.repo.ChannelInitializer
+import com.apjake.cmyc_chat_core.domain.User
+import com.apjake.cmyc_chat_core.`interface`.ChannelInitializer
+import com.apjake.cmyc_chat_core.`interface`.ChatFeature
+import com.apjake.cmyc_chat_core.`interface`.ChatInitializer
+import com.apjake.cmyc_chat_core.`interface`.ChatStatePublisher
 
 /**
  * Created by AP-Jake
@@ -48,17 +47,17 @@ import com.apjake.cmyc_chat_core.repo.ChannelInitializer
 fun ChatScreen(
     channel: String,
     name: String,
-    initializer: CMYCInitializer,
+    initializer: ChatInitializer,
     channelInitializer: ChannelInitializer,
-    statePublisher: CMYCStatePublisher,
-    feature: CMYCFeature,
+    statePublisher: ChatStatePublisher,
+    feature: ChatFeature,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
-        initializer.init(context, CUser("", name))
+        initializer.init(context, User(name, name, name, ""))
         channelInitializer.subscribeToChannel(channel)
     }
 
@@ -77,7 +76,7 @@ fun ChatScreen(
             channelInitializer.disconnect(channel)
         }
     }
-    val messages by statePublisher.messageHistory.collectAsState(emptyList())
+    val messages by statePublisher.messagesStream.collectAsState(emptyList())
 
     var currentMessage by remember { mutableStateOf("") }
 
@@ -89,7 +88,8 @@ fun ChatScreen(
     ) {
         LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            contentPadding = PaddingValues(vertical = 8.dp),
+            reverseLayout = true
         ) {
             items(messages) { message ->
                 Row(
@@ -110,12 +110,12 @@ fun ChatScreen(
                             ),
                         )
                         Text(
-                            text = message.message,
+                            text = message.content,
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
                     Text(
-                        text = message.status,
+                        text = message.status.name,
                         style = TextStyle(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Light,

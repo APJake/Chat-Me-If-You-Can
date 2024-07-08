@@ -11,6 +11,7 @@ data class CMessage(
     val message: String,
     val type: String,
     val status: String = "",
+    val timeToken: Long = -1,
 ) {
     constructor(message: String) : this("", CUser("", ""), message, "", "")
 }
